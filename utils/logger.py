@@ -36,7 +36,3 @@ class Logger:
 
     def log_critical(self, message):
         self.logger.critical(message)
-
-    def __str__(self):
-        return 'LOG'
-        
