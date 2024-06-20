@@ -1,30 +1,15 @@
-import os
 import socket
 import threading
 from queue import Queue, Empty
-import logging
 
-# Definir el directorio y de registro (Con esto putee 2 horas)
-log_dir = os.path.expanduser('~/python/logs')
-log_file_path = os.path.join(log_dir, 'port_scanner.log')
-
-# Crear el directorio de registros si no existe (Con esto tambien)
-os.makedirs(log_dir, exist_ok=True)
-
-# Configurar el registro (Aca no tanto)
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(log_file_path),
-        logging.StreamHandler()
-    ]
-)
+from utils.logger import Logger
 
 NUM_THREADS = 100
 queue = Queue()
 open_ports = []
 shutdown_event = threading.Event()  # Evento de terminación
+logger = Logger("SCANNER LOG")
+nmap_allowed_host = '45.33.32.156'
 
 # Diccionario de puertos comunes y sus servicios
 common_ports = {
@@ -53,16 +38,16 @@ def port_scan(host, port):
         if result == 0:
             service = common_ports.get(port, 'Unknown Service')
             open_ports.append((port, service))
-            #logging.info(f"Puerto {port} está abierto - {service}")
+            #logger.log_info(f"Puerto {port} está abierto - {service}")
         else:
-            #logging.debug(f"Puerto {port} está cerrado")
-         sock.close()
+            #logger.log_debug(f"Puerto {port} está cerrado")
+            sock.close()
     except socket.timeout:
-        logging.warning(f"Timeout escaneando el puerto {port}")
+        logger.log_warning(f"Timeout escaneando el puerto {port}")
     except socket.error as e:
-        logging.error(f"Error de socket escaneando el puerto {port}: {e}")
+        logger.log_error(f"Error de socket escaneando el puerto {port}: {e}")
     except Exception as e:
-        logging.critical(f"Error inesperado escaneando el puerto {port}: {e}")
+        logger.log_critical(f"Error inesperado escaneando el puerto {port}: {e}")
 
 def threader(host):
     """Función que asigna queue a los hilos."""
@@ -71,13 +56,13 @@ def threader(host):
             worker = queue.get(timeout=1)  # Timeout para verificar la señal de terminación
             if worker is None:
                 break
-            #logging.debug(f"Hilo {threading.current_thread().name} escaneando puerto {worker}")
+            #logger.log_debug(f"Hilo {threading.current_thread().name} escaneando puerto {worker}")
             port_scan(host, worker)
             queue.task_done()
         except Empty:
             continue
         except Exception as e:
-            logging.critical(f"Excepción en el hilo {threading.current_thread().name}: {e}", exc_info=True)
+            logger.log_critical(f"Excepción en el hilo {threading.current_thread().name}: {e}", exc_info=True)
             break
 
 def start_scanner(host, port_range):
@@ -86,17 +71,20 @@ def start_scanner(host, port_range):
         t = threading.Thread(target=threader, args=(host,))
         t.daemon = True
         t.start()
-        logging.debug(f"Hilo {t.name} iniciado")
+        logger.log_debug(f"Hilo {t.name} iniciado")
 
     for port in port_range:
         queue.put(port)
-        logging.debug(f"Puerto {port} añadido a la cola")
+        logger.log_debug(f"Puerto {port} añadido a la cola")
 
     queue.join()
     shutdown_event.set()  # Señal para terminar los hilos
 
 if __name__ == "__main__":
-    target_host = input("Ingrese la dirección IP o Host: ")
+    target_host = input("Ingrese la dirección IP o Host(enter para escanear la ip autorizada por nmap): ")
+    if (target_host == ''):
+        target_host = nmap_allowed_host
+
     start_port = int(input("Ingrese el puerto inicial: "))
     end_port = int(input("Ingrese el puerto final: "))
 
@@ -108,7 +96,3 @@ if __name__ == "__main__":
     for port, service in open_ports:
         print(f"Puerto {port} está abierto - {service}")
 
-#Pensar en tecnicas de evasion para la no deteccion:
-#Fragmentacion de paquetes
-#EScaneos aleatorios
-#Tiempos de espera variables
