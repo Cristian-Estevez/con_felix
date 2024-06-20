@@ -1,7 +1,9 @@
 import os
 import logging
 
-log_dir = os.path.expanduser('~/python/logs')
+# Carpeta logs en la raiz del proyecto con path relativo
+current_dir = os.path.dirname(os.path.abspath(__file__))
+log_dir = os.path.join(current_dir, '../logs')
 log_file_path = os.path.join(log_dir, 'port_scanner.log')
 os.makedirs(log_dir, exist_ok=True)
 
