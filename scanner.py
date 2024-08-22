@@ -1,6 +1,8 @@
 import socket
 import threading
 from queue import Queue, Empty
+import ipaddress 
+
 
 from utils.logger import Logger
 
@@ -108,6 +110,13 @@ def start_scanner(host, port_range):
     queue.join()
     shutdown_event.set()  # Señal para terminar los hilos
 
+def validar_ip(ip):
+    try:
+        ipaddress.ip_address(ip)
+        return True
+    except ValueError:
+        return False 
+
 if __name__ == "__main__":
     # Hay que validar el input de los usuarios, que sean: 
     #   IP válida, 
@@ -117,13 +126,33 @@ if __name__ == "__main__":
     #   debería buclear en un while ...
     #
 
-
-    target_host = input("Ingrese la dirección IP o Host(enter para escanear la ip autorizada por nmap): ")
-    if (target_host == ''):
+    while True: 
+     target_host = input("Ingrese la dirección IP o Host(enter para escanear la ip autorizada por nmap): ")
+     if (target_host == ''):
         target_host = nmap_allowed_host
+        break
+     elif validar_ip(target_host):
+        break
+     else:
+        print("La direccion ip no es valida. Porfavor ingresar una IP valida o presione enter para que le proporcionemos una de prueba.")
+   
+    print(f"Se scaneara la IP: {target_host}")
+    
+    while True:
+       try:    
+        start_port = int(input("Ingrese el puerto inicial: "))
+        end_port = int(input("Ingrese el puerto final: "))
+        if 0 <= start_port <= 65535 and 0 <= end_port <= 65535:
+            if start_port <= end_port:
+                break
+            else:
+                print("El puerto inicial debe ser menor o igual al puerto final.")
+        else:
+            print("Por favor, ingrese puertos dentro del rango 0 - 65535.")
+       except ValueError:
+           print("Por favor, ingrese un numero valido para los puertos.")
+    
 
-    start_port = int(input("Ingrese el puerto inicial: "))
-    end_port = int(input("Ingrese el puerto final: "))
     port_range = range(start_port, end_port + 1)
     set_num_threads(port_range)
 
