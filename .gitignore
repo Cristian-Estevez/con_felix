@@ -1,11 +1,76 @@
-# Environments
-.env
-.venv
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Virtual environments
+.venv/
 env/
 venv/
 ENV/
 env.bak/
 venv.bak/
 
-##Logs
+# Logs
 logs/
+*.log
+
+# Test coverage
+.coverage
+coverage.xml
+*.cover
+*.py,cover
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# PyCharm
+.idea/
+
+# VS Code
+.vscode/
+
+# MacOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+
+# Python environments
+*.pyo
+
+# Sphinx documentation
+docs/_build/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pytype
+.pytype/
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# poetry
+poetry.lock
+
+# pyproject
+pyproject.toml
+
+# local virtualenv
+venv/
+
+# others
+*.swp
+*.swo
